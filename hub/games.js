@@ -22,4 +22,22 @@ export const games = [
       </svg>
     `,
   },
+  {
+    id: 'letter-push',
+    name: 'Letter Push',
+    path: './games/letter-push/index.html',
+    iconBg: '#e6efff',
+    iconHTML: `
+      <svg viewBox="0 0 88 88" width="80" height="80" aria-hidden="true">
+        <rect x="6"  y="22" width="32" height="44" rx="6" fill="#4682e6"/>
+        <text x="22" y="56" text-anchor="middle"
+              font-family="system-ui, sans-serif" font-size="32" font-weight="800" fill="#fff">b</text>
+        <path d="M 42 44 L 58 44 M 52 38 L 58 44 L 52 50"
+              stroke="#5a4078" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="50" y="22" width="32" height="44" rx="6" fill="#4682e6"/>
+        <text x="66" y="56" text-anchor="middle"
+              font-family="system-ui, sans-serif" font-size="32" font-weight="800" fill="#fff">d</text>
+      </svg>
+    `,
+  },
 ];

@@ -4,7 +4,7 @@
 //
 // To force clients to refetch after a deploy: bump CACHE_VERSION below.
 
-const CACHE_VERSION = 'v8';
+const CACHE_VERSION = 'v9';
 const CACHE_NAME = `maxs-games-${CACHE_VERSION}`;
 
 const PRECACHE = [
@@ -22,6 +22,12 @@ const PRECACHE = [
   './games/ball-sort/ball-sort.css',
   './games/ball-sort/ball-sort.js',
   './games/ball-sort/audio.js',
+  './games/letter-push/',
+  './games/letter-push/index.html',
+  './games/letter-push/letter-push.css',
+  './games/letter-push/letter-push.js',
+  './games/letter-push/levels.js',
+  './games/letter-push/audio.js',
 ];
 
 self.addEventListener('install', (event) => {
