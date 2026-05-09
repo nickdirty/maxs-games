@@ -277,6 +277,11 @@ const levelNumEl = document.getElementById('level-num');
 const resetBtn = document.getElementById('reset-btn');
 const winScreen = document.getElementById('win-screen');
 const nextBtn = document.getElementById('next-btn');
+const settingsBtn = document.getElementById('settings-btn');
+const settingsScreen = document.getElementById('settings-screen');
+const diffSlider = document.getElementById('diff-slider');
+const diffValue = document.getElementById('diff-value');
+const settingsApply = document.getElementById('settings-apply');
 
 function ballHTML(colorIdx) {
   const p = PALETTE[colorIdx % PALETTE.length];
@@ -491,6 +496,32 @@ function onWin() {
 nextBtn.addEventListener('click', () => {
   winScreen.hidden = true;
   startLevel();
+});
+
+settingsBtn.addEventListener('click', () => {
+  diffSlider.value = String(state.difficulty);
+  diffValue.textContent = String(state.difficulty);
+  settingsScreen.hidden = false;
+});
+
+diffSlider.addEventListener('input', () => {
+  diffValue.textContent = diffSlider.value;
+});
+
+settingsApply.addEventListener('click', () => {
+  const newDiff = Number(diffSlider.value);
+  settingsScreen.hidden = true;
+  if (newDiff === state.difficulty) return;
+  // Reset adaptive window so we re-evidence at the manually-chosen tier.
+  state.difficulty = newDiff;
+  state.history = [];
+  savePersisted();
+  startLevel();
+});
+
+settingsScreen.addEventListener('click', (e) => {
+  // Tap outside the card dismisses without applying.
+  if (e.target === settingsScreen) settingsScreen.hidden = true;
 });
 
 resetBtn.addEventListener('click', () => {
