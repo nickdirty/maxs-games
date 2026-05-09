@@ -72,12 +72,11 @@ html, body {
 
 .tubes {
   flex: 1 1 auto;
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(var(--per-row, 5), var(--tube-w));
   justify-content: center;
-  align-items: center;
   align-content: center;
-  gap: clamp(10px, 2.5vw, 24px);
+  gap: 18px;
   padding: 8px 16px 16px;
   --tube-w: 72px;
   min-height: 0;

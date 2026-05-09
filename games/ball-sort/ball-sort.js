@@ -287,7 +287,8 @@ function render() {
 function fitTubeSize(nTubes) {
   // ≤5 tubes → 1 row. >5 tubes → 2 rows, split as evenly as possible.
   // Tube height ~= 3.6 * width + 14, so width is bounded by both
-  // available height and available width.
+  // available height and available width. Layout is CSS Grid with an
+  // explicit column count, so wrap is guaranteed without width hacks.
   const rows = nTubes <= 5 ? 1 : 2;
   const perRow = Math.ceil(nTubes / rows);
   const w = document.documentElement.clientWidth;
@@ -295,22 +296,19 @@ function fitTubeSize(nTubes) {
   const reserveTop = 80;   // topbar + safe-area top
   const reserveBot = 24;
   const sidePad = 32;
-  const gapH = 18;
-  const gapV = 18;
+  const gap = 18;          // matches CSS .tubes gap
   const ratio = 3.6;
   const fixedH = 14;
 
-  const wByWidth = (w - sidePad - gapH * (perRow - 1)) / perRow;
-  const wByHeight = ((h - reserveTop - reserveBot - gapV * (rows - 1)) / rows - fixedH) / ratio;
+  const wByWidth = (w - sidePad - gap * (perRow - 1)) / perRow;
+  const wByHeight = ((h - reserveTop - reserveBot - gap * (rows - 1)) / rows - fixedH) / ratio;
   let tw = Math.floor(Math.min(wByWidth, wByHeight));
   tw = Math.max(48, Math.min(96, tw));
-  tubesEl.style.setProperty('--tube-w', tw + 'px');
 
-  // Cap container width to force the wrap at perRow tubes (use a slightly
-  // tighter gap estimate than the CSS gap so wrap is reliable even if the
-  // CSS gap clamps higher on a wide viewport).
-  const containerW = perRow * tw + (perRow - 1) * (gapH - 4);
-  tubesEl.style.maxWidth = containerW + 'px';
+  // Clear stale max-width from the prior layout (cached deploys may carry it).
+  tubesEl.style.maxWidth = '';
+  tubesEl.style.setProperty('--tube-w', tw + 'px');
+  tubesEl.style.setProperty('--per-row', String(perRow));
 }
 
 function updateSelectionVisual() {
