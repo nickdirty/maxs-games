@@ -1,21 +1,27 @@
 # Max's Games
 
-Personal PWA of small games for Max, age 6.5 (early 1st-grade-ish, an
-emerging reader who confuses b/d/p/q), on an older Android tablet (TMobile
-Revvl 2, Chrome). It exists because the kids' game ecosystem is full of
-predatory ads and IAPs and it's better to just make him something clean.
+Personal PWA of small games for Max, age 6.5, autistic and very bright.
+Off-the-charts pattern recognition and visual-spatial reasoning; emerging
+reader who confuses b/d/p/q; loves animals. Runs on an older Android
+tablet (TMobile Revvl 2, Chrome). Exists because the kids' game ecosystem
+is full of predatory ads and IAPs.
 
 ## Audience implications
-- **Short text is fine; long text isn't.** He can decode short words and
-  benefits from word-based games. Long instructions still won't land —
-  show, don't tell.
-- **Letter discrimination matters.** Lowercase b/d/p/q is a current
-  challenge; games that practice it are valuable. Use lowercase for any
-  letter-focused content.
-- **Big tap targets, forgiving inputs.** Don't punish a misclick; flash
-  and switch selection rather than scolding.
+- **Don't build drill games.** Flashcard-style "show stimulus, tap the
+  right bin" patterns will bore him fast. He's bright; reading content
+  has to ride inside a real puzzle, not be the puzzle.
+- **Lean into pattern + spatial.** Those are his strengths and what
+  ball-sort already exploits. Letter discrimination can be folded into
+  sort/match/build/route mechanics.
+- **Short text is fine; long text isn't.** Show, don't tell.
+- **Lowercase** for any letter-focused content — that's where b/d/p/q
+  confusion lives.
+- **Animals are a hook.** A pet/companion meta-game across games is
+  under discussion as a unifying motivator.
+- **Big tap targets, forgiving inputs.** Don't punish a misclick.
 - **No streaks, no FOMO, no engagement traps.** Reward for finishing is
-  finishing. See `docs/constraints.md`.
+  finishing. See `docs/constraints.md`. Collection mechanics are fine
+  if pacing isn't grindy and there's no time pressure.
 
 ## Device target
 - Older Android Chrome on a low-end tablet. **No heavy frameworks, no
