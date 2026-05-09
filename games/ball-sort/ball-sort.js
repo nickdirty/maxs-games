@@ -6,40 +6,16 @@ import { playPick, playPour, playWin, playBlocked } from './audio.js';
 const STORE_KEY = 'maxs-games:ball-sort';
 const CAPACITY = 4; // balls per tube
 
-// Each color also gets a unique glyph so balls are distinguishable without
-// relying on color alone (basic colorblind hygiene + helps beginners).
 const PALETTE = [
-  { color: '#e84c4c', glyph: 'dot' },
-  { color: '#4682e6', glyph: 'star' },
-  { color: '#f0c83c', glyph: 'sun' },
-  { color: '#5cb85c', glyph: 'leaf' },
-  { color: '#9b59b6', glyph: 'diamond' },
-  { color: '#ff8c42', glyph: 'ring' },
-  { color: '#ec407a', glyph: 'heart' },
-  { color: '#26c6da', glyph: 'wave' },
+  '#e84c4c',
+  '#4682e6',
+  '#f0c83c',
+  '#5cb85c',
+  '#9b59b6',
+  '#ff8c42',
+  '#ec407a',
+  '#26c6da',
 ];
-
-const SUN_RAYS = [0, 45, 90, 135, 180, 225, 270, 315]
-  .map((a) => {
-    const r = (a * Math.PI) / 180;
-    const x1 = (Math.cos(r) * 5.5).toFixed(2);
-    const y1 = (Math.sin(r) * 5.5).toFixed(2);
-    const x2 = (Math.cos(r) * 8.5).toFixed(2);
-    const y2 = (Math.sin(r) * 8.5).toFixed(2);
-    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
-  })
-  .join('');
-
-const GLYPHS = {
-  dot:     '<circle r="5.5" fill="#fff"/>',
-  star:    '<path d="M0,-9 L2.6,-2.8 L9,-2.8 L3.7,1.2 L5.7,8 L0,4 L-5.7,8 L-3.7,1.2 L-9,-2.8 L-2.6,-2.8 Z" fill="#fff"/>',
-  sun:     `<g fill="#fff" stroke="#fff" stroke-width="1.6" stroke-linecap="round"><circle r="3.5" stroke="none"/>${SUN_RAYS}</g>`,
-  leaf:    '<path d="M0,-8.5 C-7,-3 -7,5 0,8.5 C7,5 7,-3 0,-8.5 Z" fill="#fff"/>',
-  diamond: '<path d="M0,-8 L7,0 L0,8 L-7,0 Z" fill="#fff"/>',
-  ring:    '<circle r="6" fill="none" stroke="#fff" stroke-width="2.5"/>',
-  heart:   '<path d="M0,5 C-7,-1 -7,-9 -3,-9 C-1,-9 0,-7 0,-5 C0,-7 1,-9 3,-9 C7,-9 7,-1 0,5 Z" fill="#fff"/>',
-  wave:    '<path d="M-8,1 Q-4,-5 0,1 T8,1" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>',
-};
 
 // ---------------------------------------------------------------------------
 // Difficulty
@@ -284,12 +260,8 @@ const diffValue = document.getElementById('diff-value');
 const settingsApply = document.getElementById('settings-apply');
 
 function ballHTML(colorIdx) {
-  const p = PALETTE[colorIdx % PALETTE.length];
-  return (
-    `<div class="ball" data-color="${colorIdx}" style="background-color:${p.color}">` +
-      `<svg viewBox="-10 -10 20 20" aria-hidden="true">${GLYPHS[p.glyph]}</svg>` +
-    `</div>`
-  );
+  const color = PALETTE[colorIdx % PALETTE.length];
+  return `<div class="ball" data-color="${colorIdx}" style="background-color:${color}"></div>`;
 }
 
 function tubeEl(i) {

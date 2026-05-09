@@ -141,12 +141,6 @@ html, body {
   );
   pointer-events: none;
 }
-.ball svg {
-  width: 64%;
-  height: 64%;
-  pointer-events: none;
-  filter: drop-shadow(0 1px 0.5px rgba(0,0,0,0.2));
-}
 .ball.flying { z-index: 200; will-change: transform; }
 
 /* Win overlay */
