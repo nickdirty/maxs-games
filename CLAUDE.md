@@ -1,15 +1,19 @@
 # Max's Games
 
-Personal PWA of small games for Max, age 5 (kindergarten reading level), on
-an older Android tablet (TMobile Revvl 2, Chrome). It exists because the
-kids' game ecosystem is full of predatory ads and IAPs and it's better to
-just make him something clean.
+Personal PWA of small games for Max, age 6.5 (early 1st-grade-ish, an
+emerging reader who confuses b/d/p/q), on an older Android tablet (TMobile
+Revvl 2, Chrome). It exists because the kids' game ecosystem is full of
+predatory ads and IAPs and it's better to just make him something clean.
 
 ## Audience implications
-- **Minimal text.** Lean on icons, color, and audio. Anything textual must
-  be one or two short words a kindergartener can recognize, or skipped.
-- **Big tap targets, forgiving inputs.** Don't punish a misclick; flash and
-  switch selection rather than scolding.
+- **Short text is fine; long text isn't.** He can decode short words and
+  benefits from word-based games. Long instructions still won't land —
+  show, don't tell.
+- **Letter discrimination matters.** Lowercase b/d/p/q is a current
+  challenge; games that practice it are valuable. Use lowercase for any
+  letter-focused content.
+- **Big tap targets, forgiving inputs.** Don't punish a misclick; flash
+  and switch selection rather than scolding.
 - **No streaks, no FOMO, no engagement traps.** Reward for finishing is
   finishing. See `docs/constraints.md`.
 
