@@ -76,12 +76,17 @@ export function getEnglishVoices() {
     .filter((v) => (v.lang || '').toLowerCase().startsWith('en'));
 }
 
-// Heuristic: prefer en-US, female-sounding, enhanced/network voices.
+// Default voice selection. "Google US English" is the friendly Android
+// default and what we want unless the user picks something else; if that
+// specific voice isn't installed, fall back to a heuristic (prefer en-US,
+// female-sounding, enhanced/network voices).
 // Returns null if no voices are available yet (voices may load async on
-// Android — call onVoicesReady() to know when to retry).
+// Android — call onVoicesChanged() to know when to retry).
 export function pickDefaultVoice() {
   const voices = getEnglishVoices();
   if (voices.length === 0) return null;
+  const googleUS = voices.find((v) => v.name === 'Google US English');
+  if (googleUS) return googleUS;
   function score(v) {
     let s = 0;
     const lang = (v.lang || '').toLowerCase();
