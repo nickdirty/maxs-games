@@ -121,11 +121,15 @@ accident" case.
 
 ---
 
-## 7. Color + glyph per ball, not color alone
+## 7. Color only on balls (glyphs were tried and removed)
 
-Eight palette entries each pair a hue with a unique inline-SVG glyph
-(dot, star, sun, leaf, diamond, ring, heart, wave). Distinguishable
-without color, kid-friendly, no extra image files to cache.
+Originally each color paired with a unique inline-SVG glyph (star, sun,
+leaf, etc.) so balls were distinguishable without color — a basic
+colorblind-hygiene reflex. In practice the glyphs read as visual noise
+on small balls, and the specific kid this is built for has no CVD. We
+dropped them. If a future game has a different audience, reintroduce a
+non-color channel (glyph, pattern, or shape) instead of trusting hue
+alone.
 
 ---
 
