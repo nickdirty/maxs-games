@@ -13,7 +13,7 @@ const PALETTE = [
   '#5cb85c',
   '#9b59b6',
   '#ff8c42',
-  '#ec407a',
+  '#ff80b0',
   '#26c6da',
 ];
 
