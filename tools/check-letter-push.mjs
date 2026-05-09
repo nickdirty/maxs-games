@@ -46,7 +46,7 @@ function canonical(state) {
   return `${state.player.x},${state.player.y}|${lk}`;
 }
 
-function solve(level, { stateCap = 200_000, depthCap = 200 } = {}) {
+function solve(level, { stateCap = 2_000_000, depthCap = 200 } = {}) {
   const grid = level.grid;
   const start = {
     player: { x: level.player[0], y: level.player[1] },

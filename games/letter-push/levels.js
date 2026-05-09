@@ -152,4 +152,163 @@ export const LEVELS = [
       [8, 4, 'p'],
     ],
   },
+
+  // ----- Word-spelling levels -----
+  // Targets are arranged left-to-right to spell a real short word. Letters
+  // not in the b/d/p/q flip set ('a', 'e', 'i', 'o', 'u') pass through gates
+  // unchanged, so they behave like inert blocks for routing purposes.
+
+  // L9: "pad" — no flips needed. Introduces word-spelling: every letter is
+  // already correct, just push each one down to its target.
+  {
+    grid: [
+      '########',
+      '#......#',
+      '#......#',
+      '#......#',
+      '#......#',
+      '#......#',
+      '#......#',
+      '########',
+    ],
+    player: [1, 1],
+    letters: [
+      [2, 2, 'p'],
+      [3, 2, 'a'],
+      [4, 2, 'd'],
+    ],
+    targets: [
+      [2, 6, 'p'],
+      [3, 6, 'a'],
+      [4, 6, 'd'],
+    ],
+  },
+
+  // L10: "bed" — one flip on the right column (b → d).
+  {
+    grid: [
+      '########',
+      '#......#',
+      '#......#',
+      '#......#',
+      '#...H..#',
+      '#......#',
+      '#......#',
+      '########',
+    ],
+    player: [1, 1],
+    letters: [
+      [2, 2, 'b'],
+      [3, 2, 'e'],
+      [4, 2, 'b'],
+    ],
+    targets: [
+      [2, 6, 'b'],
+      [3, 6, 'e'],
+      [4, 6, 'd'],
+    ],
+  },
+
+  // L11: "bid" — one flip, but on the LEFT column this time (d → b).
+  // Forces noticing that "the same letter shape" can need flipping at either
+  // end depending on the target.
+  {
+    grid: [
+      '########',
+      '#......#',
+      '#......#',
+      '#......#',
+      '#.H....#',
+      '#......#',
+      '#......#',
+      '########',
+    ],
+    player: [4, 1],
+    letters: [
+      [2, 2, 'd'],
+      [3, 2, 'i'],
+      [4, 2, 'd'],
+    ],
+    targets: [
+      [2, 6, 'b'],
+      [3, 6, 'i'],
+      [4, 6, 'd'],
+    ],
+  },
+
+  // L12: "dad" — both ends need flipping (b → d on each side).
+  {
+    grid: [
+      '########',
+      '#......#',
+      '#......#',
+      '#......#',
+      '#.H.H..#',
+      '#......#',
+      '#......#',
+      '########',
+    ],
+    player: [1, 1],
+    letters: [
+      [2, 2, 'b'],
+      [3, 2, 'a'],
+      [4, 2, 'b'],
+    ],
+    targets: [
+      [2, 6, 'd'],
+      [3, 6, 'a'],
+      [4, 6, 'd'],
+    ],
+  },
+
+  // L13: "pop" — two flips, q → p pair instead of b → d.
+  {
+    grid: [
+      '########',
+      '#......#',
+      '#......#',
+      '#......#',
+      '#.H.H..#',
+      '#......#',
+      '#......#',
+      '########',
+    ],
+    player: [1, 1],
+    letters: [
+      [2, 2, 'q'],
+      [3, 2, 'o'],
+      [4, 2, 'q'],
+    ],
+    targets: [
+      [2, 6, 'p'],
+      [3, 6, 'o'],
+      [4, 6, 'p'],
+    ],
+  },
+
+  // L14: "dip" — two flips that touch BOTH letter pairs (b→d on the left,
+  // q→p on the right).
+  {
+    grid: [
+      '########',
+      '#......#',
+      '#......#',
+      '#......#',
+      '#.H.H..#',
+      '#......#',
+      '#......#',
+      '########',
+    ],
+    player: [1, 1],
+    letters: [
+      [2, 2, 'b'],
+      [3, 2, 'i'],
+      [4, 2, 'q'],
+    ],
+    targets: [
+      [2, 6, 'd'],
+      [3, 6, 'i'],
+      [4, 6, 'p'],
+    ],
+  },
 ];

@@ -71,6 +71,15 @@ function isWon(letters, targets) {
   );
 }
 
+// Read-order concat of the level's target chars: top-to-bottom then left-to-right.
+// For word-spelling levels (a row of targets), this is the spelled word.
+function spelledWord(targets) {
+  return targets.slice()
+    .sort((a, b) => (a[1] - b[1]) || (a[0] - b[0]))
+    .map((t) => t[2])
+    .join('');
+}
+
 // ---------------------------------------------------------------------------
 // Layout / rendering
 // ---------------------------------------------------------------------------
@@ -279,8 +288,12 @@ function loadLevel(idx) {
 
 function onWin() {
   setTimeout(() => {
-    playWin();
     winScreen.hidden = false;
+    // Speak the completed word (or the lone letter on single-target levels);
+    // the celebratory arpeggio plays after, so the speech doesn't get drowned.
+    const word = spelledWord(LEVELS[state.levelIdx].targets);
+    speak(word);
+    setTimeout(playWin, 700);
   }, 220);
 }
 
