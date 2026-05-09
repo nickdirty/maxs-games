@@ -381,19 +381,37 @@ function handleTubeTap(idx) {
 async function doMove(from, to) {
   state.selected = null;
   updateSelectionVisual();
+  const srcArr = state.tubes[from];
+  const dstArr = state.tubes[to];
+  if (srcArr.length === 0) return;
+  const topColor = srcArr[srcArr.length - 1];
+  const freeSpace = CAPACITY - dstArr.length;
+  if (freeSpace <= 0) return;
+  if (dstArr.length > 0 && dstArr[dstArr.length - 1] !== topColor) return;
+
+  // QoL: same-color top run moves together, capped by destination free space.
+  let runLength = 0;
+  for (let i = srcArr.length - 1; i >= 0 && srcArr[i] === topColor; i--) runLength++;
+  const numToMove = Math.min(runLength, freeSpace);
+  if (numToMove <= 0) return;
+
   const srcTube = tubeEl(from);
   const dstTube = tubeEl(to);
-  const ballEl = srcTube.lastElementChild;
-  if (!ballEl) return;
+  const srcChildren = Array.from(srcTube.children);
+  const ballsToMove = srcChildren.slice(srcChildren.length - numToMove);
 
-  // Update model up-front; we'll animate the DOM via FLIP.
-  const color = state.tubes[from].pop();
-  state.tubes[to].push(color);
-  state.moves++;
+  // Update model up-front; we'll animate the DOM via FLIP. Move count is
+  // per-ball (not per-tap) so the adaptive-difficulty system stays
+  // comparable with BFS optimal, which is in single-ball units.
+  for (let i = 0; i < numToMove; i++) {
+    state.tubes[from].pop();
+    state.tubes[to].push(topColor);
+  }
+  state.moves += numToMove;
 
   isAnimating = true;
   try {
-    await animateMove(ballEl, dstTube);
+    await animateMoves(ballsToMove, dstTube);
   } finally {
     isAnimating = false;
   }
@@ -404,20 +422,32 @@ async function doMove(from, to) {
   }
 }
 
-async function animateMove(ballEl, dstTube) {
-  // FLIP: snapshot start rect → reparent → snapshot end rect → animate inverse to identity.
-  const startRect = ballEl.getBoundingClientRect();
-  dstTube.appendChild(ballEl);
-  const endRect = ballEl.getBoundingClientRect();
+async function animateMoves(balls, dstTube) {
+  // FLIP across multiple balls. Capture all start rects BEFORE any DOM
+  // mutation — reparenting one ball shifts the others' positions.
+  const starts = balls.map((b) => b.getBoundingClientRect());
+  for (const b of balls) dstTube.appendChild(b);
+  const ends = balls.map((b) => b.getBoundingClientRect());
+
+  const STAGGER_MS = 50;
+  // Top of the moved stack (highest array index) leads; lower balls trail.
+  const animations = balls.map((b, i) =>
+    animateOneBall(b, starts[i], ends[i], (balls.length - 1 - i) * STAGGER_MS)
+  );
+  return Promise.all(animations);
+}
+
+async function animateOneBall(ballEl, startRect, endRect, delay) {
   const dx = startRect.left - endRect.left;
   const dy = startRect.top - endRect.top;
-
-  // Lift apex above whichever rect is higher (smaller y) so the ball arcs over the rims.
   const apexY = Math.min(startRect.top, endRect.top) - Math.max(60, startRect.height * 0.9);
   const apexDy = apexY - endRect.top;
 
   ballEl.classList.add('flying');
   try {
+    // fill: 'backwards' applies the first keyframe during the stagger delay,
+    // so the ball visibly waits at its source position until its turn —
+    // otherwise it'd flicker at the destination during delay.
     const anim = ballEl.animate(
       [
         { transform: `translate(${dx}px, ${dy}px)`, offset: 0 },
@@ -425,7 +455,7 @@ async function animateMove(ballEl, dstTube) {
         { transform: `translate(0px, ${apexDy}px)`,    offset: 0.65, easing: 'ease-in-out' },
         { transform: `translate(0px, 0px)`,            offset: 1,    easing: 'ease-in' },
       ],
-      { duration: 380 }
+      { duration: 380, delay, fill: 'backwards' }
     );
     await anim.finished;
   } catch {
