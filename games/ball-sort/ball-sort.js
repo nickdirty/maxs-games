@@ -44,22 +44,25 @@ const GLYPHS = {
 // ---------------------------------------------------------------------------
 // Difficulty
 // ---------------------------------------------------------------------------
-// Difficulty 1..12 maps to (colors, empty tubes, scramble depth). The kid's
-// shown level number is independent — we just keep nudging difficulty up/down
-// based on how the last few levels went.
+// Each tier maps to (colors, empties, target optimal-solve range).
+// Difficulty (1..12) is hidden; the displayed level number just increments.
+// Generation does a random fill and validates with a BFS solver; we accept
+// the puzzle if the optimal solution length lands in [minMoves, maxMoves].
+// All tiers use 2 empties — with only 1 empty, low-color puzzles are
+// trivially equivalent to solved no matter how long you scramble.
 const TIERS = {
-  1:  { colors: 3, empties: 1, scramble: 8  },
-  2:  { colors: 3, empties: 1, scramble: 12 },
-  3:  { colors: 4, empties: 2, scramble: 14 },
-  4:  { colors: 4, empties: 1, scramble: 18 },
-  5:  { colors: 5, empties: 2, scramble: 22 },
-  6:  { colors: 5, empties: 1, scramble: 26 },
-  7:  { colors: 6, empties: 2, scramble: 30 },
-  8:  { colors: 6, empties: 1, scramble: 34 },
-  9:  { colors: 7, empties: 2, scramble: 40 },
-  10: { colors: 7, empties: 2, scramble: 46 },
-  11: { colors: 8, empties: 2, scramble: 50 },
-  12: { colors: 8, empties: 2, scramble: 56 },
+  1:  { colors: 3, empties: 2, minMoves: 4,  maxMoves: 10 },
+  2:  { colors: 3, empties: 2, minMoves: 8,  maxMoves: 14 },
+  3:  { colors: 4, empties: 2, minMoves: 10, maxMoves: 16 },
+  4:  { colors: 4, empties: 2, minMoves: 14, maxMoves: 22 },
+  5:  { colors: 5, empties: 2, minMoves: 16, maxMoves: 24 },
+  6:  { colors: 5, empties: 2, minMoves: 20, maxMoves: 30 },
+  7:  { colors: 6, empties: 2, minMoves: 22, maxMoves: 34 },
+  8:  { colors: 6, empties: 2, minMoves: 28, maxMoves: 40 },
+  9:  { colors: 7, empties: 2, minMoves: 30, maxMoves: 44 },
+  10: { colors: 7, empties: 2, minMoves: 34, maxMoves: 50 },
+  11: { colors: 8, empties: 2, minMoves: 36, maxMoves: 54 },
+  12: { colors: 8, empties: 2, minMoves: 40, maxMoves: 60 },
 };
 const MAX_TIER = 12;
 
@@ -69,54 +72,24 @@ function levelConfig(d) {
 }
 
 function nextDifficulty(history, current) {
-  // Need 3 consecutive efficient solves to move up,
-  // 2 consecutive struggles to move down. Reset window after a step
-  // so we require fresh evidence at the new level.
+  // 3 consecutive efficient solves → bump up. 2 consecutive struggles → bump
+  // down. Window resets after a step so we re-evidence at the new tier.
+  const eff = (o) => o.solved && o.optimalMoves > 0 && o.moves <= o.optimalMoves * 1.8;
+  const struggle = (o) => !o.solved || (o.optimalMoves > 0 && o.moves > o.optimalMoves * 4);
   const last3 = history.slice(-3);
-  if (
-    last3.length === 3 &&
-    last3.every((o) => o.solved && o.moves <= o.scrambleDepth * 1.6)
-  ) {
+  if (last3.length === 3 && last3.every(eff)) {
     return { difficulty: Math.min(current + 1, MAX_TIER), reset: true };
   }
   const last2 = history.slice(-2);
-  if (
-    last2.length === 2 &&
-    last2.every((o) => !o.solved || o.moves > o.scrambleDepth * 3.5)
-  ) {
+  if (last2.length === 2 && last2.every(struggle)) {
     return { difficulty: Math.max(current - 1, 1), reset: true };
   }
   return { difficulty: current, reset: false };
 }
 
 // ---------------------------------------------------------------------------
-// Puzzle generation
+// Puzzle mechanics + solver
 // ---------------------------------------------------------------------------
-function makeSolved(cfg) {
-  const tubes = [];
-  for (let c = 0; c < cfg.colors; c++) tubes.push(Array(cfg.capacity).fill(c));
-  for (let i = 0; i < cfg.empties; i++) tubes.push([]);
-  return tubes;
-}
-
-function listValidMoves(tubes, cap) {
-  const moves = [];
-  for (let i = 0; i < tubes.length; i++) {
-    const src = tubes[i];
-    if (src.length === 0) continue;
-    const top = src[src.length - 1];
-    for (let j = 0; j < tubes.length; j++) {
-      if (i === j) continue;
-      const dst = tubes[j];
-      if (dst.length >= cap) continue;
-      if (dst.length === 0 || dst[dst.length - 1] === top) {
-        moves.push({ from: i, to: j });
-      }
-    }
-  }
-  return moves;
-}
-
 function isUniformTube(t, cap) {
   if (t.length !== cap) return false;
   const c = t[0];
@@ -132,35 +105,124 @@ function isSolved(tubes, cap) {
   return true;
 }
 
-function scramble(tubes, n, cap) {
-  // Random valid moves from solved. Two anti-degenerate filters:
-  //  - skip the move that exactly undoes the previous one
-  //  - prefer moves that touch a non-uniform tube (more "interesting")
-  let last = null;
-  for (let i = 0; i < n; i++) {
-    let candidates = listValidMoves(tubes, cap).filter(
-      (m) => !(last && m.from === last.to && m.to === last.from)
-    );
-    if (candidates.length === 0) candidates = listValidMoves(tubes, cap);
-    if (candidates.length === 0) break;
-    const interesting = candidates.filter(
-      (m) => !isUniformTube(tubes[m.from], cap) || tubes[m.to].length > 0
-    );
-    const pool = interesting.length > 0 ? interesting : candidates;
-    const m = pool[Math.floor(Math.random() * pool.length)];
-    tubes[m.to].push(tubes[m.from].pop());
-    last = m;
+// Solver-only move list. Prunes branches that don't help solve:
+//  - never pour off a full uniform tube (it's already a solved column)
+//  - never pour a uniform stack onto an empty tube (just a tube relabel,
+//    canonicalization would dedupe but pruning is faster)
+// Player code uses canMove() with no pruning.
+function listSolverMoves(tubes, cap) {
+  const moves = [];
+  for (let i = 0; i < tubes.length; i++) {
+    const src = tubes[i];
+    if (src.length === 0) continue;
+    const top = src[src.length - 1];
+    let homogeneous = true;
+    for (const x of src) if (x !== top) { homogeneous = false; break; }
+    if (homogeneous && src.length === cap) continue;
+    for (let j = 0; j < tubes.length; j++) {
+      if (i === j) continue;
+      const dst = tubes[j];
+      if (dst.length >= cap) continue;
+      if (dst.length === 0) {
+        if (homogeneous) continue;
+        moves.push({ from: i, to: j });
+      } else if (dst[dst.length - 1] === top) {
+        moves.push({ from: i, to: j });
+      }
+    }
   }
+  return moves;
+}
+
+function applyMove(tubes, m) {
+  const next = tubes.map((t) => t.slice());
+  next[m.to].push(next[m.from].pop());
+  return next;
+}
+
+// Canonical key collapses tube-permutation symmetry: two states differing
+// only by tube order map to the same string.
+function canonical(tubes) {
+  return tubes.map((t) => t.join(',')).sort().join('|');
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function randomFill(cfg) {
+  const balls = [];
+  for (let c = 0; c < cfg.colors; c++) {
+    for (let i = 0; i < cfg.capacity; i++) balls.push(c);
+  }
+  shuffle(balls);
+  const tubes = [];
+  for (let c = 0; c < cfg.colors; c++) {
+    tubes.push(balls.splice(0, cfg.capacity));
+  }
+  for (let i = 0; i < cfg.empties; i++) tubes.push([]);
+  return tubes;
+}
+
+// BFS solver. Returns optimal solution length, or -1 if unsolvable / aborted.
+// stateCap bounds memory; for 6+ colors BFS to optimal can blow past it on
+// the tablet — that's fine, we treat the abort as "definitely hard enough".
+function solveBFS(tubes, cap, { stateCap = 120_000, depthCap = 80 } = {}) {
+  if (isSolved(tubes, cap)) return 0;
+  const visited = new Set();
+  visited.add(canonical(tubes));
+  let frontier = [tubes];
+  for (let depth = 1; depth <= depthCap; depth++) {
+    const next = [];
+    for (const state of frontier) {
+      const moves = listSolverMoves(state, cap);
+      for (const m of moves) {
+        const ns = applyMove(state, m);
+        if (isSolved(ns, cap)) return depth;
+        const key = canonical(ns);
+        if (visited.has(key)) continue;
+        visited.add(key);
+        next.push(ns);
+        if (visited.size > stateCap) return -1;
+      }
+    }
+    if (next.length === 0) return -1;
+    frontier = next;
+  }
+  return -1;
 }
 
 function generateLevel(cfg) {
-  let tubes;
-  for (let attempt = 0; attempt < 8; attempt++) {
-    tubes = makeSolved(cfg);
-    scramble(tubes, cfg.scramble, cfg.capacity);
-    if (!isSolved(tubes, cfg.capacity)) return tubes;
+  // Random fills are usually solvable. Try several; prefer ones whose
+  // optimal solve length lands inside the tier's target band, fall back
+  // to the closest acceptable result if the band is missed. Wall-time
+  // bounded so high tiers don't make the kid wait between levels.
+  const target = (cfg.minMoves + cfg.maxMoves) / 2;
+  const deadlineMs = 1200;
+  const t0 = Date.now();
+  let best = null;
+  for (let attempt = 0; attempt < 24; attempt++) {
+    if (best && Date.now() - t0 > deadlineMs) break;
+    const tubes = randomFill(cfg);
+    if (isSolved(tubes, cfg.capacity)) continue;
+    const moves = solveBFS(tubes, cfg.capacity, { depthCap: cfg.maxMoves + 8 });
+    if (moves < 0) {
+      // Solver aborted (state cap on a hard puzzle) — treat as hard-enough.
+      if (!best) best = { tubes, optimalMoves: cfg.maxMoves };
+      continue;
+    }
+    if (moves >= cfg.minMoves && moves <= cfg.maxMoves) {
+      return { tubes, optimalMoves: moves };
+    }
+    if (!best || Math.abs(moves - target) < Math.abs(best.optimalMoves - target)) {
+      best = { tubes, optimalMoves: moves };
+    }
   }
-  return tubes;
+  return best ?? { tubes: randomFill(cfg), optimalMoves: cfg.minMoves };
 }
 
 // ---------------------------------------------------------------------------
@@ -174,14 +236,19 @@ const state = {
   original: [],
   selected: null,
   moves: 0,
-  scrambleDepth: 0,
+  optimalMoves: 0,  // BFS-found minimum solution length for this puzzle
 };
 
 function loadPersisted() {
   try {
     const raw = localStorage.getItem(STORE_KEY);
     if (!raw) return null;
-    return JSON.parse(raw);
+    const data = JSON.parse(raw);
+    // Schema migration: drop old-shape history entries (scrambleDepth-based).
+    if (Array.isArray(data.history)) {
+      data.history = data.history.filter((o) => o && typeof o.optimalMoves === 'number');
+    }
+    return data;
   } catch {
     return null;
   }
@@ -401,7 +468,7 @@ function recordOutcome(solved) {
   state.history.push({
     solved,
     moves: state.moves,
-    scrambleDepth: state.scrambleDepth,
+    optimalMoves: state.optimalMoves,
   });
   if (state.history.length > 8) state.history.shift();
   const { difficulty, reset } = nextDifficulty(state.history, state.difficulty);
@@ -439,9 +506,10 @@ resetBtn.addEventListener('click', () => {
 
 function startLevel() {
   const cfg = levelConfig(state.difficulty);
-  state.tubes = generateLevel(cfg);
-  state.original = state.tubes.map((t) => [...t]);
-  state.scrambleDepth = cfg.scramble;
+  const { tubes, optimalMoves } = generateLevel(cfg);
+  state.tubes = tubes;
+  state.original = tubes.map((t) => [...t]);
+  state.optimalMoves = optimalMoves;
   state.moves = 0;
   state.selected = null;
   render();
