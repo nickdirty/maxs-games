@@ -54,3 +54,22 @@ export function playWin() {
     tone({ type: 'triangle', freqStart: f, dur: 0.32, peak: 0.18, delay: i * 0.10 });
   });
 }
+
+// Web Speech API — uses the OS's local TTS engine, no network calls.
+// Available on Android Chrome once Google TTS is installed (it ships by
+// default on most Android devices). Falls back to silence on unsupported
+// browsers. We always cancel any in-flight utterance so rapid flips don't
+// queue up — only the most recent letter speaks.
+export function speak(text, { rate = 0.9, pitch = 1.0 } = {}) {
+  if (typeof window === 'undefined') return;
+  if (!('speechSynthesis' in window)) return;
+  try {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = rate;
+    u.pitch = pitch;
+    u.volume = 1.0;
+    u.lang = 'en-US';
+    window.speechSynthesis.speak(u);
+  } catch { /* TTS may be unavailable; degrade silently */ }
+}

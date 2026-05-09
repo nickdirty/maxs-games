@@ -1,5 +1,5 @@
 import { LEVELS } from './levels.js';
-import { playStep, playPush, playFlip, playWin, playBlocked } from './audio.js';
+import { playStep, playPush, playFlip, playWin, playBlocked, speak } from './audio.js';
 
 const STORE_KEY = 'maxs-games:letter-push';
 const SLIDE_MS = 200;
@@ -227,7 +227,13 @@ async function animatePush(letterIdx, didFlip) {
     const el = board.querySelectorAll('.entity.letter')[letterIdx];
     el.classList.add('flipping');
     // Swap text content at the midpoint of the flip animation (when scaleX=0).
-    setTimeout(() => { el.textContent = state.letters[letterIdx].char; }, FLIP_MS / 2);
+    setTimeout(() => {
+      const newChar = state.letters[letterIdx].char;
+      el.textContent = newChar;
+      // Reinforce the new identity audibly — the whole point of the gate is
+      // that the letter changed, and TTS lands that for an emerging reader.
+      speak(newChar);
+    }, FLIP_MS / 2);
     playFlip();
     await wait(FLIP_MS);
     el.classList.remove('flipping');
