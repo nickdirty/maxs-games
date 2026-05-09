@@ -285,9 +285,11 @@ function render() {
 }
 
 function fitTubeSize(nTubes) {
-  // Pick a tube width that lets all tubes fit either in 1 row or 2.
+  // ≤5 tubes → 1 row. >5 tubes → 2 rows, split as evenly as possible.
   // Tube height ~= 3.6 * width + 14, so width is bounded by both
   // available height and available width.
+  const rows = nTubes <= 5 ? 1 : 2;
+  const perRow = Math.ceil(nTubes / rows);
   const w = document.documentElement.clientWidth;
   const h = document.documentElement.clientHeight;
   const reserveTop = 80;   // topbar + safe-area top
@@ -298,20 +300,17 @@ function fitTubeSize(nTubes) {
   const ratio = 3.6;
   const fixedH = 14;
 
-  function fitForRows(rows) {
-    const perRow = Math.ceil(nTubes / rows);
-    const wByWidth = (w - sidePad - gapH * (perRow - 1)) / perRow;
-    const wByHeight = ((h - reserveTop - reserveBot - gapV * (rows - 1)) / rows - fixedH) / ratio;
-    return Math.floor(Math.min(wByWidth, wByHeight));
-  }
+  const wByWidth = (w - sidePad - gapH * (perRow - 1)) / perRow;
+  const wByHeight = ((h - reserveTop - reserveBot - gapV * (rows - 1)) / rows - fixedH) / ratio;
+  let tw = Math.floor(Math.min(wByWidth, wByHeight));
+  tw = Math.max(48, Math.min(96, tw));
+  tubesEl.style.setProperty('--tube-w', tw + 'px');
 
-  let best = 0;
-  for (let rows = 1; rows <= 2; rows++) {
-    const tw = fitForRows(rows);
-    if (tw > best) best = tw;
-  }
-  best = Math.max(48, Math.min(96, best));
-  tubesEl.style.setProperty('--tube-w', best + 'px');
+  // Cap container width to force the wrap at perRow tubes (use a slightly
+  // tighter gap estimate than the CSS gap so wrap is reliable even if the
+  // CSS gap clamps higher on a wide viewport).
+  const containerW = perRow * tw + (perRow - 1) * (gapH - 4);
+  tubesEl.style.maxWidth = containerW + 'px';
 }
 
 function updateSelectionVisual() {

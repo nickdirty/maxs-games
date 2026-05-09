@@ -4,7 +4,7 @@
 //
 // To force clients to refetch after a deploy: bump CACHE_VERSION below.
 
-const CACHE_VERSION = 'v4';
+const CACHE_VERSION = 'v5';
 const CACHE_NAME = `maxs-games-${CACHE_VERSION}`;
 
 const PRECACHE = [
