@@ -1,5 +1,9 @@
 import { LEVELS } from './levels.js';
-import { playStep, playPush, playFlip, playWin, playBlocked, speak } from './audio.js';
+import {
+  playStep, playPush, playFlip, playWin, playBlocked,
+  speak, getEnglishVoices, getEffectiveVoice,
+  setSelectedVoiceName, getSelectedVoiceName, onVoicesChanged,
+} from './audio.js';
 
 const STORE_KEY = 'maxs-games:letter-push';
 const SLIDE_MS = 200;
@@ -37,6 +41,8 @@ const settingsScreen = document.getElementById('settings-screen');
 const levelSlider = document.getElementById('level-slider');
 const levelValueEl = document.getElementById('level-value');
 const settingsApply = document.getElementById('settings-apply');
+const voiceSelect = document.getElementById('voice-select');
+const voiceTestBtn = document.getElementById('voice-test');
 const winScreen = document.getElementById('win-screen');
 const nextBtn = document.getElementById('next-btn');
 
@@ -283,7 +289,10 @@ function onWin() {
 // ---------------------------------------------------------------------------
 function savePersisted() {
   try {
-    localStorage.setItem(STORE_KEY, JSON.stringify({ levelIdx: state.levelIdx }));
+    localStorage.setItem(STORE_KEY, JSON.stringify({
+      levelIdx: state.levelIdx,
+      voice: getSelectedVoiceName(),
+    }));
   } catch { /* localStorage may be disabled */ }
 }
 function loadPersisted() {
@@ -334,6 +343,7 @@ settingsBtn.addEventListener('click', () => {
   levelSlider.max = String(LEVELS.length);
   levelSlider.value = String(state.levelIdx + 1);
   levelValueEl.textContent = String(state.levelIdx + 1);
+  refreshVoiceSelect();
   settingsScreen.hidden = false;
 });
 levelSlider.addEventListener('input', () => {
@@ -341,11 +351,56 @@ levelSlider.addEventListener('input', () => {
 });
 settingsApply.addEventListener('click', () => {
   const newIdx = Number(levelSlider.value) - 1;
+  // Apply the voice selection from the dropdown.
+  if (voiceSelect.value) setSelectedVoiceName(voiceSelect.value);
   settingsScreen.hidden = true;
+  savePersisted();
   if (newIdx !== state.levelIdx) loadLevel(newIdx);
 });
 settingsScreen.addEventListener('click', (e) => {
   if (e.target === settingsScreen) settingsScreen.hidden = true;
+});
+
+// Voice picker: populate the dropdown with English voices, mark the
+// currently-effective one as selected. The "test" button speaks the four
+// confusable letters with whatever's *highlighted in the dropdown* (not
+// yet applied) so you can audition before committing.
+function refreshVoiceSelect() {
+  if (!voiceSelect) return;
+  const voices = getEnglishVoices();
+  voiceSelect.innerHTML = '';
+  if (voices.length === 0) {
+    const opt = document.createElement('option');
+    opt.textContent = 'No voices available';
+    opt.disabled = true;
+    voiceSelect.appendChild(opt);
+    voiceSelect.disabled = true;
+    voiceTestBtn.disabled = true;
+    return;
+  }
+  voiceSelect.disabled = false;
+  voiceTestBtn.disabled = false;
+  for (const v of voices) {
+    const opt = document.createElement('option');
+    opt.value = v.name;
+    // Trim verbose Google IDs to fit narrower screens.
+    const labelName = v.name.length > 36 ? v.name.slice(0, 33) + '…' : v.name;
+    opt.textContent = `${labelName}  (${v.lang})`;
+    voiceSelect.appendChild(opt);
+  }
+  const eff = getEffectiveVoice();
+  if (eff) voiceSelect.value = eff.name;
+}
+
+voiceTestBtn?.addEventListener('click', () => {
+  const candidate = voiceSelect.value;
+  const v = getEnglishVoices().find((x) => x.name === candidate);
+  speak('b. d. p. q.', { voice: v ?? undefined });
+});
+
+onVoicesChanged(() => {
+  // Keep the dropdown fresh if the voice list changes while settings is open.
+  if (!settingsScreen.hidden) refreshVoiceSelect();
 });
 
 let resizeRAF = 0;
@@ -368,4 +423,5 @@ window.addEventListener('resize', () => {
 // Init
 // ---------------------------------------------------------------------------
 const persisted = loadPersisted();
+if (persisted?.voice) setSelectedVoiceName(persisted.voice);
 loadLevel(persisted?.levelIdx ?? 0);
