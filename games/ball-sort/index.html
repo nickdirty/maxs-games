@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1d2734">
+  <title>Ball Sort</title>
+  <link rel="stylesheet" href="./ball-sort.css">
+</head>
+<body>
+  <main id="game">
+    <header class="topbar">
+      <div class="level-badge" aria-label="Level">Lv <span id="level-num">1</span></div>
+      <button id="reset-btn" class="icon-btn" aria-label="Restart level" type="button">↻</button>
+    </header>
+    <div id="tubes" class="tubes"></div>
+  </main>
+
+  <div id="win-screen" class="win-screen" hidden>
+    <div class="win-card">
+      <div class="win-emoji">⭐</div>
+      <div class="win-text">You did it!</div>
+      <button id="next-btn" class="next-btn" type="button">Next</button>
+    </div>
+  </div>
+
+  <script type="module" src="./ball-sort.js"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#78c88c">
+  <title>Max's Games</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="stylesheet" href="./hub/hub.css">
+</head>
+<body>
+  <main id="hub" class="hub">
+    <h1 class="title">Max's Games</h1>
+    <div id="tile-grid" class="tile-grid"></div>
+  </main>
+
+  <div id="game-shell" class="game-shell" hidden>
+    <button id="back-btn" class="back-btn" aria-label="Back to games" type="button">←</button>
+    <iframe id="game-frame" class="game-frame" title="Game"></iframe>
+  </div>
+
+  <script type="module" src="./hub/hub.js"></script>
+</body>
+</html>
