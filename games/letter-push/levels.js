@@ -160,8 +160,8 @@ export const LEVELS = [
   // Letters not in the b/d/p/q flip set (a, e, i, o, u) pass through gates
   // unchanged — they behave like inert blocks for routing purposes.
 
-  // L9 "pad" — no flips. Push UP this time (letters at the bottom, targets
-  // at the top) instead of the usual push-down.
+  // L9 "pad" — no flips, but letters scattered diagonally so the kid has
+  // to figure out which letter goes to which target column.
   {
     grid: [
       '########',
@@ -173,21 +173,21 @@ export const LEVELS = [
       '#......#',
       '########',
     ],
-    player: [1, 6],
+    player: [1, 1],
     letters: [
-      [2, 5, 'p'],
-      [3, 5, 'a'],
-      [4, 5, 'd'],
+      [3, 2, 'd'],
+      [4, 3, 'p'],
+      [5, 4, 'a'],
     ],
     targets: [
-      [2, 1, 'p'],
-      [3, 1, 'a'],
-      [4, 1, 'd'],
+      [2, 6, 'p'],
+      [3, 6, 'a'],
+      [4, 6, 'd'],
     ],
   },
 
-  // L10 "bed" — push DOWN, one flip on the right column (b→d). The classic
-  // setup, kept as a familiar shape after L9.
+  // L10 "bed" — two b's at scrambled positions; kid has to decide which
+  // one to flip into the d. The b nearer the gate is the natural pick.
   {
     grid: [
       '########',
@@ -201,9 +201,9 @@ export const LEVELS = [
     ],
     player: [1, 1],
     letters: [
-      [2, 2, 'b'],
-      [3, 2, 'e'],
-      [4, 2, 'b'],
+      [3, 2, 'b'],
+      [5, 3, 'b'],
+      [3, 4, 'e'],
     ],
     targets: [
       [2, 6, 'b'],
@@ -212,9 +212,9 @@ export const LEVELS = [
     ],
   },
 
-  // L11 "bid" — push RIGHT (sideways!) with the gate near the source.
-  // Same idea as L10's flip-as-you-pass, but rotated 90° so direction isn't
-  // always vertical.
+  // L11 "bid" — sideways push, two d's at scrambled positions. One d goes
+  // through the top-row gate (flips to b for the b target), the other goes
+  // straight to the d target. Player picks which.
   {
     grid: [
       '##########',
@@ -226,21 +226,21 @@ export const LEVELS = [
     ],
     player: [1, 1],
     letters: [
-      [2, 2, 'd'],
-      [2, 3, 'i'],
-      [2, 4, 'd'],
+      [2, 3, 'd'],
+      [4, 2, 'i'],
+      [4, 4, 'd'],
     ],
     targets: [
-      [5, 2, 'b'],
-      [5, 3, 'i'],
-      [5, 4, 'd'],
+      [7, 2, 'b'],
+      [7, 3, 'i'],
+      [7, 4, 'd'],
     ],
   },
 
-  // L12 "dad" — push DOWN, one flip on the LEFT column this time (b→d).
-  // The middle 'a' and right 'd' pass straight through. Same shape as L10
-  // but with the flip column mirrored, reinforcing "either end can be the
-  // one that needs flipping."
+  // L12 "dad" — letters scrambled across the upper area. One b must flip
+  // into a d (using the left-column gate); the existing d already matches
+  // a target. Player has to recognise that one of the two d-targets gets
+  // its letter directly and the other has to come from the b via the gate.
   {
     grid: [
       '########',
@@ -254,9 +254,9 @@ export const LEVELS = [
     ],
     player: [1, 1],
     letters: [
-      [2, 2, 'b'],
-      [3, 2, 'a'],
-      [4, 2, 'd'],
+      [4, 2, 'b'],
+      [3, 3, 'a'],
+      [2, 3, 'd'],
     ],
     targets: [
       [2, 6, 'd'],
@@ -265,37 +265,36 @@ export const LEVELS = [
     ],
   },
 
-  // L13 "pop" — internal wall makes most columns blocked between the upper
-  // and lower halves. The q's column has a flip gate (so q → p as it passes
-  // through), while the other letters must route around via the open columns
-  // on the right. The existing 'p' must NOT go through the gate — it'd
-  // flip to q. Recognising "this letter has to take the long way" is the
-  // new puzzle insight.
+  // L13 "pop" — letters scrambled across two rows. The q is offset from
+  // the others; player has to figure out the flip happens via the
+  // left-column gate, while the p must avoid it (would flip to q).
   {
     grid: [
       '##########',
       '#........#',
       '#........#',
-      '#.H####..#',
+      '#........#',
+      '#.H......#',
       '#........#',
       '##########',
     ],
     player: [1, 1],
     letters: [
-      [2, 2, 'q'],
+      [3, 2, 'q'],
       [5, 2, 'o'],
-      [8, 2, 'p'],
+      [6, 3, 'p'],
     ],
     targets: [
-      [2, 4, 'p'],
-      [5, 4, 'o'],
-      [8, 4, 'p'],
+      [2, 5, 'p'],
+      [5, 5, 'o'],
+      [7, 5, 'p'],
     ],
   },
 
-  // L14 "dip" — push RIGHT (sideways) with one gate on the BOTTOM row this
-  // time. Touches the OTHER letter pair (q→p), so the kid sees that the
-  // same flip mechanic also handles p/q — not just b/d.
+  // L14 "dip" — sideways push, scrambled letters across rows. The q routes
+  // through the gate (flips to p) for the bottom target; the d must avoid
+  // the gate to stay as d for the top target. The kid has to recognise
+  // that d going through the gate would flip to b and ruin it.
   {
     grid: [
       '##########',
@@ -307,14 +306,14 @@ export const LEVELS = [
     ],
     player: [1, 1],
     letters: [
-      [2, 2, 'd'],
-      [2, 3, 'i'],
-      [2, 4, 'q'],
+      [3, 2, 'q'],
+      [4, 3, 'i'],
+      [5, 2, 'd'],
     ],
     targets: [
-      [6, 2, 'd'],
-      [6, 3, 'i'],
-      [6, 4, 'p'],
+      [7, 2, 'd'],
+      [7, 3, 'i'],
+      [7, 4, 'p'],
     ],
   },
 ];
