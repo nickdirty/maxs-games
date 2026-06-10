@@ -17,7 +17,7 @@ is full of predatory ads and IAPs.
 - **Lowercase** for any letter-focused content — that's where b/d/p/q
   confusion lives.
 - **Animals are a hook.** A pet/companion meta-game across games is
-  under discussion as a unifying motivator.
+  planned as a unifying motivator — see `docs/roadmap.md`.
 - **Big tap targets, forgiving inputs.** Don't punish a misclick.
 - **No streaks, no FOMO, no engagement traps.** Reward for finishing is
   finishing. See `docs/constraints.md`. Collection mechanics are fine
