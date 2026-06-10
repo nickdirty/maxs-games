@@ -4,7 +4,12 @@
 import { LEVELS } from '../games/letter-push/levels.js';
 
 const H_FLIP = { b: 'd', d: 'b', p: 'q', q: 'p' };
-function flipH(ch) { return H_FLIP[ch] ?? ch; }
+const ROT_180 = { b: 'q', q: 'b', d: 'p', p: 'd' };
+function applyGate(gate, ch) {
+  if (gate === 'H') return H_FLIP[ch] ?? ch;
+  if (gate === 'R') return ROT_180[ch] ?? ch;
+  return ch;
+}
 
 function isWall(grid, x, y) {
   if (y < 0 || y >= grid.length) return true;
@@ -31,9 +36,8 @@ function tryMove(state, dx, dy, grid) {
   }
   const bx = nx + dx, by = ny + dy;
   if (isWall(grid, bx, by) || letterIndexAt(state.letters, bx, by) >= 0) return null;
-  const onGate = grid[by][bx] === 'H';
   const cur = state.letters[li];
-  const newLetter = { x: bx, y: by, char: onGate ? flipH(cur.char) : cur.char };
+  const newLetter = { x: bx, y: by, char: applyGate(grid[by][bx], cur.char) };
   const newLetters = state.letters.slice();
   newLetters[li] = newLetter;
   return { player: { x: nx, y: ny }, letters: newLetters };

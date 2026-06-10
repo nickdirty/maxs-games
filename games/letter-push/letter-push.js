@@ -1,13 +1,17 @@
 import { LEVELS } from './levels.js';
 import {
-  playStep, playPush, playFlip, playWin, playBlocked,
+  playStep, playPush, playFlip, playRotate, playWin, playBlocked,
+} from './audio.js';
+import {
   speak, getEnglishVoices, getEffectiveVoice,
   setSelectedVoiceName, getSelectedVoiceName, onVoicesChanged,
-} from './audio.js';
+} from '../../shared/tts.js';
+import { recordCompletion } from '../../shared/meta.js';
 
 const STORE_KEY = 'maxs-games:letter-push';
 const SLIDE_MS = 200;
 const FLIP_MS = 250;
+const SPIN_MS = 350;
 
 const PLAYER_SVG = `
 <svg viewBox="0 0 40 40" aria-hidden="true">
@@ -62,8 +66,15 @@ function letterIndexAt(letters, x, y) {
   return -1;
 }
 
+// Two gate kinds: 'H' mirrors, 'R' turns upside down. Vowels pass through
+// unchanged. Chaining both reaches the remaining pairs (b↔p, d↔q).
 const H_FLIP = { b: 'd', d: 'b', p: 'q', q: 'p' };
-function flipH(ch) { return H_FLIP[ch] ?? ch; }
+const ROT_180 = { b: 'q', q: 'b', d: 'p', p: 'd' };
+function applyGate(gate, ch) {
+  if (gate === 'H') return H_FLIP[ch] ?? ch;
+  if (gate === 'R') return ROT_180[ch] ?? ch;
+  return ch;
+}
 
 function isWon(letters, targets) {
   return targets.every(([tx, ty, tch]) =>
@@ -112,6 +123,7 @@ function buildBoard() {
       cell.className = 'cell';
       if (ch === '#') cell.classList.add('wall');
       else if (ch === 'H') cell.classList.add('gate-h');
+      else if (ch === 'R') cell.classList.add('gate-r');
       else cell.classList.add('floor');
       cell.style.left = (x * state.cellSize) + 'px';
       cell.style.top = (y * state.cellSize) + 'px';
@@ -211,14 +223,16 @@ async function tryMove(dx, dy) {
       return;
     }
     pushHistory();
-    const onGate = grid[by][bx] === 'H';
-    const newChar = onGate ? flipH(state.letters[li].char) : state.letters[li].char;
+    const gate = (grid[by][bx] === 'H' || grid[by][bx] === 'R') ? grid[by][bx] : null;
+    const oldChar = state.letters[li].char;
+    const newChar = applyGate(gate, oldChar);
     state.letters[li] = { x: bx, y: by, char: newChar };
     state.player = { x: nx, y: ny };
 
     isAnimating = true;
     playPush();
-    await animatePush(li, onGate);
+    // Vowels pass through gates unchanged — no transform animation for them.
+    await animatePush(li, newChar !== oldChar ? gate : null);
     isAnimating = false;
 
     if (isWon(state.letters, level.targets)) onWin();
@@ -235,24 +249,32 @@ async function tryMove(dx, dy) {
 
 function wait(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
-async function animatePush(letterIdx, didFlip) {
+async function animatePush(letterIdx, gate) {
   positionEntities();
   await wait(SLIDE_MS);
-  if (didFlip) {
-    const el = board.querySelectorAll('.entity.letter')[letterIdx];
+  if (!gate) return;
+  const el = board.querySelectorAll('.entity.letter')[letterIdx];
+  const newChar = state.letters[letterIdx].char;
+  if (gate === 'H') {
     el.classList.add('flipping');
     // Swap text content at the midpoint of the flip animation (when scaleX=0).
-    setTimeout(() => {
-      const newChar = state.letters[letterIdx].char;
-      el.textContent = newChar;
-      // Reinforce the new identity audibly — the whole point of the gate is
-      // that the letter changed, and TTS lands that for an emerging reader.
-      speak(newChar);
-    }, FLIP_MS / 2);
+    setTimeout(() => { el.textContent = newChar; }, FLIP_MS / 2);
     playFlip();
     await wait(FLIP_MS);
     el.classList.remove('flipping');
+  } else {
+    // Spin the OLD glyph 180°, then swap in the new one — at 180° the old
+    // letter's shape coincides with the new letter upright, so the swap
+    // reads as one continuous motion (b literally turns into q).
+    el.classList.add('spinning');
+    playRotate();
+    await wait(SPIN_MS);
+    el.textContent = newChar;
+    el.classList.remove('spinning');
   }
+  // Reinforce the new identity audibly — the whole point of the gate is
+  // that the letter changed, and TTS lands that for an emerging reader.
+  speak(newChar);
 }
 
 function undo() {
@@ -287,6 +309,7 @@ function loadLevel(idx) {
 }
 
 function onWin() {
+  recordCompletion('letter-push');
   setTimeout(() => {
     winScreen.hidden = false;
     // Speak the completed word (or the lone letter on single-target levels);
@@ -302,10 +325,7 @@ function onWin() {
 // ---------------------------------------------------------------------------
 function savePersisted() {
   try {
-    localStorage.setItem(STORE_KEY, JSON.stringify({
-      levelIdx: state.levelIdx,
-      voice: getSelectedVoiceName(),
-    }));
+    localStorage.setItem(STORE_KEY, JSON.stringify({ levelIdx: state.levelIdx }));
   } catch { /* localStorage may be disabled */ }
 }
 function loadPersisted() {
@@ -436,5 +456,7 @@ window.addEventListener('resize', () => {
 // Init
 // ---------------------------------------------------------------------------
 const persisted = loadPersisted();
-if (persisted?.voice) setSelectedVoiceName(persisted.voice);
+// One-time migration: voice used to live in this game's store before the
+// shared tts module owned it. Don't stomp a newer shared selection.
+if (persisted?.voice && !getSelectedVoiceName()) setSelectedVoiceName(persisted.voice);
 loadLevel(persisted?.levelIdx ?? 0);
