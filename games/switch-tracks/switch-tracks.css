@@ -1,0 +1,302 @@
+* { box-sizing: border-box; }
+
+:root {
+  --bg-1: #36425c;
+  --bg-2: #2a3447;
+  --text: #ffffff;
+  --accent: #e8a33c;
+}
+
+html, body {
+  margin: 0; padding: 0;
+  height: 100%;
+  background: linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+#game {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+}
+
+.topbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  padding-left: 76px;       /* leave space for hub back-button overlay */
+  flex: 0 0 auto;
+}
+
+.level-badge {
+  font-size: 17px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 8px 16px;
+  border-radius: 999px;
+}
+
+.icon-btn {
+  appearance: none;
+  border: none;
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 24px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.icon-btn:active { transform: scale(0.92); }
+
+.board-wrap {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  min-height: 0;
+}
+
+.board { position: relative; }
+.board svg.tracks { display: block; }
+
+/* Track styling lives on path classes drawn by JS */
+.track-base {
+  stroke: #5d6b85;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+.track-ties {
+  stroke: #46536b;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+/* Branches out of a switch: chosen one is lit, the other fades */
+.track-base.on  { stroke: #8fa3c8; }
+.track-base.off { stroke: #46506488; }
+.track-ties.off { stroke: transparent; }
+
+/* Switch button (HTML overlay, big tap target) */
+.switch-btn {
+  position: absolute;
+  width: 52px; height: 52px;
+  margin: -26px 0 0 -26px;     /* center on node */
+  border: none;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), inset 0 0 0 3px rgba(255, 255, 255, 0.35);
+  color: #5a3c10;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 8;
+  padding: 0;
+}
+.switch-btn:active { transform: scale(0.9); }
+.switch-btn .arrow {
+  display: block;
+  transition: transform 160ms ease;
+}
+
+/* Stations and platforms */
+.station {
+  position: absolute;
+  width: 56px; height: 56px;
+  margin: -28px 0 0 -28px;
+  border: 3px dashed var(--ring, #fff);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 4;
+  background: rgba(0, 0, 0, 0.18);
+}
+.station svg { width: 75%; height: 75%; opacity: 0.35; }
+.station.filled { border-style: solid; background: rgba(255, 255, 255, 0.10); }
+.station.filled svg { opacity: 1; }
+.station.wiggle { animation: wiggle 0.4s ease; }
+@keyframes wiggle {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.platform {
+  position: absolute;
+  width: 60px; height: 60px;
+  margin: -30px 0 0 -30px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.10);
+  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.18);
+  z-index: 3;
+}
+
+/* The rider */
+.rider {
+  position: absolute;
+  width: 52px; height: 52px;
+  margin: -26px 0 0 -26px;
+  z-index: 10;
+  pointer-events: none;
+}
+.rider svg {
+  width: 100%; height: 100%;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.4));
+}
+.rider.settled { z-index: 6; }
+
+/* Bottom controls: waiting queue + GO */
+.controls {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 10px 16px calc(env(safe-area-inset-bottom, 0px) + 18px);
+  min-height: 104px;
+}
+.queue-row {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  min-width: 40px;
+}
+.queue-row .waiting { width: 34px; height: 34px; opacity: 0.85; }
+.queue-row .waiting svg { width: 100%; height: 100%; }
+
+.go-btn {
+  appearance: none;
+  border: none;
+  width: 84px; height: 84px;
+  border-radius: 50%;
+  background: #58a86c;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  padding: 0;
+}
+.go-btn:active { transform: scale(0.94); }
+.go-btn:disabled { opacity: 0.45; }
+
+/* Win + settings overlays — same UX pattern as the other games. */
+.win-screen, .settings-screen {
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 50;
+  animation: fadeIn 0.25s ease;
+}
+.win-screen[hidden], .settings-screen[hidden] { display: none; }
+
+.win-card, .settings-card {
+  background: linear-gradient(180deg, #ffffff 0%, #fff7ec 100%);
+  color: #3a3424;
+  padding: 32px 36px 28px;
+  border-radius: 28px;
+  text-align: center;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+  max-width: 80vw;
+  animation: pop 0.32s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+.settings-card { width: min(85vw, 420px); padding: 28px 32px 24px; }
+
+.win-emoji { font-size: 72px; line-height: 1; }
+.win-text  { font-size: 28px; font-weight: 800; margin: 12px 0 20px; }
+
+.next-btn {
+  appearance: none; border: none;
+  background: var(--accent);
+  color: white;
+  font-family: inherit;
+  font-size: 22px; font-weight: 700;
+  padding: 14px 36px;
+  border-radius: 999px;
+  cursor: pointer;
+  min-width: 180px;
+}
+.next-btn:active { transform: scale(0.96); }
+
+.settings-title {
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+.settings-value {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--accent);
+  margin: 0 0 18px;
+}
+.settings-card input[type=range] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 40px;
+  background: transparent;
+  margin: 0 0 24px;
+}
+.settings-card input[type=range]::-webkit-slider-runnable-track {
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f5e3c5 0%, var(--accent) 100%);
+}
+.settings-card input[type=range]::-moz-range-track {
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f5e3c5 0%, var(--accent) 100%);
+}
+.settings-card input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid var(--accent);
+  margin-top: -14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+.settings-card input[type=range]::-moz-range-thumb {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid var(--accent);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pop {
+  from { transform: scale(0.6); opacity: 0; }
+  to   { transform: scale(1.0); opacity: 1; }
+}
