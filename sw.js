@@ -4,7 +4,7 @@
 //
 // To force clients to refetch after a deploy: bump CACHE_VERSION below.
 
-const CACHE_VERSION = 'v15';
+const CACHE_VERSION = 'v16';
 const CACHE_NAME = `maxs-games-${CACHE_VERSION}`;
 
 const PRECACHE = [
@@ -14,6 +14,7 @@ const PRECACHE = [
   './hub/hub.css',
   './hub/hub.js',
   './hub/games.js',
+  './hub/pet.js',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-maskable-512.png',
@@ -28,6 +29,33 @@ const PRECACHE = [
   './games/letter-push/letter-push.js',
   './games/letter-push/levels.js',
   './games/letter-push/audio.js',
+  './games/herd-home/',
+  './games/herd-home/index.html',
+  './games/herd-home/herd-home.css',
+  './games/herd-home/herd-home.js',
+  './games/herd-home/levels.js',
+  './games/herd-home/audio.js',
+  './games/switch-tracks/',
+  './games/switch-tracks/index.html',
+  './games/switch-tracks/switch-tracks.css',
+  './games/switch-tracks/switch-tracks.js',
+  './games/switch-tracks/levels.js',
+  './games/switch-tracks/audio.js',
+  './games/pair-paths/',
+  './games/pair-paths/index.html',
+  './games/pair-paths/pair-paths.css',
+  './games/pair-paths/pair-paths.js',
+  './games/pair-paths/levels.js',
+  './games/pair-paths/audio.js',
+  './games/key-maze/',
+  './games/key-maze/index.html',
+  './games/key-maze/key-maze.css',
+  './games/key-maze/key-maze.js',
+  './games/key-maze/levels.js',
+  './games/key-maze/audio.js',
+  './shared/meta.js',
+  './shared/animals.js',
+  './shared/tts.js',
 ];
 
 self.addEventListener('install', (event) => {
