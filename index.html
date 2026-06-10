@@ -13,8 +13,17 @@
 <body>
   <main id="hub" class="hub">
     <h1 class="title">Max's Games</h1>
+    <button id="pet-btn" class="pet-btn" aria-label="Your pet and sticker book" type="button"></button>
     <div id="tile-grid" class="tile-grid"></div>
   </main>
+
+  <div id="sticker-screen" class="sticker-screen" hidden>
+    <div class="sticker-card">
+      <div id="sticker-pet" class="sticker-pet"></div>
+      <div id="sticker-grid" class="sticker-grid"></div>
+      <button id="sticker-close" class="sticker-close" type="button" aria-label="Close">ok</button>
+    </div>
+  </div>
 
   <div id="game-shell" class="game-shell" hidden>
     <button id="back-btn" class="back-btn" aria-label="Back to games" type="button">←</button>

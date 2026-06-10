@@ -1,9 +1,16 @@
 import { games } from './games.js';
+import { readCompletions } from '../shared/meta.js';
+import { petSVG, petStage, stickersEarned } from './pet.js';
 
 const grid = document.getElementById('tile-grid');
 const shell = document.getElementById('game-shell');
 const frame = document.getElementById('game-frame');
 const backBtn = document.getElementById('back-btn');
+const petBtn = document.getElementById('pet-btn');
+const stickerScreen = document.getElementById('sticker-screen');
+const stickerPet = document.getElementById('sticker-pet');
+const stickerGrid = document.getElementById('sticker-grid');
+const stickerClose = document.getElementById('sticker-close');
 
 function renderTiles() {
   grid.innerHTML = '';
@@ -41,9 +48,49 @@ function closeGame({ fromPop = false } = {}) {
   if (!fromPop && location.hash === '#play') {
     history.back();
   }
+  refreshPet();
 }
 
 backBtn.addEventListener('click', () => closeGame());
+
+// --- Pet + sticker book -----------------------------------------------------
+function refreshPet() {
+  const { total } = readCompletions();
+  petBtn.innerHTML = petSVG(petStage(total));
+}
+
+function openStickerBook() {
+  const { total } = readCompletions();
+  stickerPet.innerHTML = petSVG(petStage(total));
+  stickerGrid.innerHTML = '';
+  for (const emoji of stickersEarned(total)) {
+    const s = document.createElement('span');
+    s.className = 'sticker';
+    s.textContent = emoji;
+    stickerGrid.appendChild(s);
+  }
+  stickerScreen.hidden = false;
+}
+
+petBtn.addEventListener('click', () => {
+  petBtn.classList.remove('bounce');
+  void petBtn.offsetWidth;       // restart the animation on repeat taps
+  petBtn.classList.add('bounce');
+  openStickerBook();
+});
+stickerClose.addEventListener('click', () => { stickerScreen.hidden = true; });
+stickerScreen.addEventListener('click', (e) => {
+  if (e.target === stickerScreen) stickerScreen.hidden = true;
+});
+
+// Games write completions from their iframes; 'storage' fires here for
+// writes from other browsing contexts, and the focus/visibility hooks
+// cover anything that slips through.
+window.addEventListener('storage', refreshPet);
+window.addEventListener('focus', refreshPet);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) refreshPet();
+});
 
 window.addEventListener('popstate', () => {
   // user hit hardware/browser back
@@ -55,6 +102,7 @@ window.addEventListener('keydown', (e) => {
 });
 
 renderTiles();
+refreshPet();
 
 // Register service worker. Relative path keeps subpath flexible.
 if ('serviceWorker' in navigator) {
