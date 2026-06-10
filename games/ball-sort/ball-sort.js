@@ -1,4 +1,5 @@
 import { playPick, playPour, playWin, playBlocked } from './audio.js';
+import { recordCompletion } from '../../shared/meta.js';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -482,6 +483,7 @@ function recordOutcome(solved) {
 }
 
 function onWin() {
+  recordCompletion('ball-sort');
   // small delay so the final pour visually settles before the overlay
   setTimeout(() => {
     playWin();
